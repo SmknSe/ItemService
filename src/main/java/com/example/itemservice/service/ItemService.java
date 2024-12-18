@@ -2,7 +2,7 @@ package com.example.itemservice.service;
 
 import com.example.itemservice.model.Item;
 import com.example.itemservice.persistence.ItemRepo;
-import com.example.itemservice.util.ItemDTOMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import model.ItemDTO;
@@ -15,7 +15,7 @@ import java.util.List;
 public class ItemService {
     private final ItemRepo itemRepo;
 
-    private final ItemDTOMapper mapper;
+    private final ObjectMapper objectMapper;
 
     public ItemDTO createItem(ItemDTO itemDTO) {
         var savedItem = itemRepo.save(
@@ -25,15 +25,15 @@ public class ItemService {
                         .price(itemDTO.price())
                         .build()
         );
-        return mapper.apply(savedItem);
+        return objectMapper.convertValue(savedItem, ItemDTO.class);
     }
 
     public List<ItemDTO> getAllItems() {
-        return itemRepo.findAll().stream().map(mapper).toList();
+        return itemRepo.findAll().stream().map(item -> objectMapper.convertValue(item, ItemDTO.class)).toList();
     }
 
     public ItemDTO getItemById(String id) {
-        return itemRepo.findById(id).map(mapper).orElseThrow(() -> new EntityNotFoundException("Item not found"));
+        return itemRepo.findById(id).map(item -> objectMapper.convertValue(item, ItemDTO.class)).orElseThrow(() -> new EntityNotFoundException("Item not found"));
     }
 
     public void deleteItemById(String id) {
